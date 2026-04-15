@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (Firebase Auth UID)
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required) - User email
+    //   - plan: string (required, enum: ['free', 'pro', 'admin']) - Subscription plan
+    //   - credits: number (required) - Available credits
+    //   - favorites: list (optional) - List of favorite prompt IDs
+    //   - dailyGenerations: number (optional) - Number of generations today
+    //   - lastGenerationDate: string (optional, ISO 8601) - Last generation date
+    //   - isLifetime: bool (optional) - Whether user has lifetime access
+    //
+    // Collection: prompt_stats
+    // Document ID: {promptId}
+    // Fields:
+    //   - views: number (required) - Number of views
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan == 'admin') ||
+        (request.auth.token.email == "moaathbakhrish@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'plan', 'credits']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && isValidEmail(data.email) &&
+             (!('name' in data) || data.name is string) &&
+             data.plan in ['free', 'pro', 'admin'] &&
+             data.credits is number && data.credits >= 0 &&
+             (!('favorites' in data) || data.favorites is list) &&
+             (!('dailyGenerations' in data) || data.dailyGenerations is number) &&
+             (!('lastGenerationDate' in data) || isValidDateString(data.lastGenerationDate)) &&
+             (!('isLifetime' in data) || data.isLifetime is bool);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      (request.resource.data.plan == 'free' || isAdmin());
+      
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      (request.resource.data.plan == resource.data.plan || isAdmin()) &&
+                      (request.resource.data.uid == resource.data.uid);
+      
+      allow delete: if isAdmin();
+    }
+
+    match /prompt_stats/{promptId} {
+      // Explicitly allow get and list for everyone
+      allow get, list: if true;
+      
+      // Allow anyone to initialize or update stats
+      // We'll keep it simple for now to ensure it works
+      allow create, update: if true;
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -163,3 +163,22 @@ export async function toggleFavorite(uid: string, promptId: string, isFavorite: 
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
 }
+
+export async function saveGeneration(uid: string, prompt: string) {
+  const path = `users/${uid}`;
+  try {
+    const userRef = doc(db, 'users', uid);
+    const generationId = Math.random().toString(36).substring(2, 15);
+    await updateDoc(userRef, {
+      dailyGenerations: increment(1),
+      totalGenerations: increment(1),
+      generationHistory: arrayUnion({
+        id: generationId,
+        prompt: prompt,
+        date: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}

@@ -119,7 +119,12 @@ export default function ProfilePage() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Sidebar Info */}
-            <div className="lg:col-span-1 space-y-6">
+            <motion.div 
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              className="lg:col-span-1 space-y-6"
+            >
               <Card className="p-8 rounded-[2.5rem] text-center border border-white/10 shadow-xl bg-black ring-0 relative overflow-hidden">
                 {/* Glow effects */}
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-[50px] pointer-events-none" />
@@ -137,7 +142,7 @@ export default function ProfilePage() {
                 
                 <div className="flex justify-center gap-2 mb-8 relative z-10">
                   <Badge variant="outline" className="border-white/20 text-white">
-                    {t('profGen')}: {profile?.dailyGenerations || 0}
+                    {isArabic ? 'إجمالي التوليدات' : 'Total Generations'}: {profile?.totalGenerations || profile?.dailyGenerations || 0}
                   </Badge>
                 </div>
 
@@ -161,9 +166,9 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
                     <div className="flex items-center gap-3">
                       <Sparkles className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-white/70">{t('profGen')}</span>
+                      <span className="text-sm font-medium text-white/70">{isArabic ? 'إجمالي التوليدات' : 'Total Generations'}</span>
                     </div>
-                    <span className="font-bold text-white">{profile?.dailyGenerations || 0}</span>
+                    <span className="font-bold text-white">{profile?.totalGenerations || profile?.dailyGenerations || 0}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
                     <div className="flex items-center gap-3">
@@ -174,10 +179,15 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </Card>
-            </div>
+            </motion.div>
 
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <motion.div 
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+              className="lg:col-span-2 space-y-8"
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-display font-bold text-white">{t('profYourFav')}</h2>
                 <Button 
@@ -224,7 +234,53 @@ export default function ProfilePage() {
                   ))}
                 </div>
               )}
-            </div>
+
+              {/* Generation History */}
+              {profile?.generationHistory && profile.generationHistory.length > 0 && (
+                <div className="space-y-6 pt-8">
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-3xl font-display font-bold text-white">
+                      {isArabic ? 'تاريخ التوليد' : 'Generation History'}
+                    </h2>
+                    <span className="text-sm text-white/30 font-medium tracking-wide">
+                      {isArabic ? 'يتم حفظ آخر 5 برومبتات قمت بتوليدها' : 'The last 5 prompts you generated are saved'}
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    {profile.generationHistory.slice(-5).reverse().map((gen) => (
+                      <Card key={gen.id} className="p-6 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-sm relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-50" />
+                        <p className="text-white/80 mb-4 line-clamp-2 group-hover:line-clamp-none transition-all duration-300">
+                          {gen.prompt}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-white/30">
+                              {new Date(gen.date).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US')}
+                            </span>
+                            <span className="text-[10px] text-white/30 font-sans">
+                              {new Date(gen.date).toLocaleTimeString(language === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-primary hover:bg-primary/10 h-8"
+                            onClick={() => {
+                              navigator.clipboard.writeText(gen.prompt);
+                              toast.success(t('genCopied'));
+                            }}
+                          >
+                            <Sparkles className="w-3 h-3 mr-2" />
+                            {t('genCopy')}
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
         </div>
       </main>

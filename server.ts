@@ -78,12 +78,18 @@ async function startServer() {
       const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzdog1J5djq52THUd9pt_YBK34iP3hgcLPULnv6zwIwdtI5w10AWfOngzirt-nGtoRfnw/exec';
       console.log('Fetching from Google Sheets URL:', SHEETS_URL);
       
-      let response = await fetch(SHEETS_URL, {
-        redirect: 'follow',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-      });
+      let response;
+      try {
+        response = await fetch(SHEETS_URL, {
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+      } catch (fetchError: any) {
+        console.error('Fetch error (network level):', fetchError);
+        throw fetchError;
+      }
 
       // Simple retry logic for transient GAS errors
       if (!response.ok && response.status >= 500) {
@@ -101,7 +107,7 @@ async function startServer() {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Google Sheets error response:', errorText);
+        console.error('Google Sheets error response body:', errorText.substring(0, 1000));
         
         // If we have cached data, return it even if expired as a fallback
         if (sheetsCache) {
@@ -109,7 +115,7 @@ async function startServer() {
           return res.json(sheetsCache);
         }
         
-        return res.status(response.status).json({ error: 'Failed to fetch from Google Sheets' });
+        return res.status(response.status).json({ error: `Failed to fetch from Google Sheets: ${response.status}` });
       }
 
       const data = await response.json();

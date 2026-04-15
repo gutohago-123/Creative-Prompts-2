@@ -19,9 +19,26 @@ const PromptsPage: React.FC = () => {
   const [prompts, setPrompts] = useState<GalleryPrompt[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   
+  // Initialize category from sessionStorage if not in URL
+  useEffect(() => {
+    const savedCategory = sessionStorage.getItem('gallery_last_category');
+    const currentCategory = searchParams.get('category');
+    
+    if (!currentCategory && savedCategory && savedCategory !== 'all') {
+      const params = new URLSearchParams(searchParams);
+      params.set('category', savedCategory);
+      setSearchParams(params, { replace: true });
+    }
+  }, []);
+
   const searchQuery = searchParams.get('q') || '';
   const activeCategory = searchParams.get('category') || 'all';
   const isArabic = language === 'ar';
+
+  // Save category to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('gallery_last_category', activeCategory);
+  }, [activeCategory]);
 
   const loadPrompts = async () => {
     setLoading(true);

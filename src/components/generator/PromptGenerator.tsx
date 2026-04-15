@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,15 +11,32 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { saveGeneration } from '@/services/firebase';
 
 export default function PromptGenerator() {
-  const [idea, setIdea] = useState('');
+  const [idea, setIdea] = useState(() => sessionStorage.getItem('gen_idea') || '');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<GeneratedPrompt | null>(null);
+  const [result, setResult] = useState<GeneratedPrompt | null>(() => {
+    const cached = sessionStorage.getItem('gen_result');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [copied, setCopied] = useState(false);
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const isArabic = language === 'ar';
+
+  // Persist state to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('gen_idea', idea);
+  }, [idea]);
+
+  useEffect(() => {
+    if (result) {
+      sessionStorage.setItem('gen_result', JSON.stringify(result));
+    } else {
+      sessionStorage.removeItem('gen_result');
+    }
+  }, [result]);
 
   const inspirationChips = language === 'ar' ? [
     'إضاءة سينمائية', 'تصوير ماكرو', 'ألوان نيون', 'واقعية مفرطة', 'تصميم ثلاثي الأبعاد', 'أسلوب سايبربانك', 'خلفية ضبابية',
@@ -48,6 +65,11 @@ export default function PromptGenerator() {
     try {
       const data = await generatePrompt(idea);
       setResult(data);
+      
+      // Save to Firestore
+      if (user) {
+        await saveGeneration(user.uid, data.prompt);
+      }
       
       toast.success(language === 'ar' ? 'تم توليد البرومبت بنجاح!' : 'Prompt generated successfully!');
     } catch (error) {

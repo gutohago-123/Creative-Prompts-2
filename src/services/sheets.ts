@@ -15,10 +15,16 @@ export async function fetchPrompts(): Promise<Prompt[]> {
     console.log('Fetching prompts from:', SHEETS_URL);
     const response = await fetch(SHEETS_URL);
     if (!response.ok) {
-      console.error('HTTP error fetching prompts:', response.status);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('HTTP error fetching prompts:', response.status, errorData);
       return [];
     }
     const data = await response.json();
+    
+    if (!Array.isArray(data)) {
+      console.error('Expected array from sheets API, got:', typeof data);
+      return [];
+    }
     
     // Filter out empty rows and ensure unique IDs
     const validData = data.filter((item: any) => item.prompts && String(item.prompts).trim() !== '');
@@ -61,11 +67,17 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
     console.log('Fetching gallery prompts from:', SHEETS_URL);
     const response = await fetch(SHEETS_URL);
     if (!response.ok) {
-      console.error('HTTP error fetching gallery prompts:', response.status);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('HTTP error fetching gallery prompts:', response.status, errorData);
       return cachedPrompts || [];
     }
     const data = await response.json();
-    console.log('fetchGalleryPrompts: Raw data:', data);
+    console.log('fetchGalleryPrompts: Raw data received successfully:', data ? 'Yes' : 'No');
+    
+    if (!Array.isArray(data)) {
+      console.error('Expected array from gallery sheets API, got:', typeof data, data);
+      return cachedPrompts || [];
+    }
     
     // Filter out empty rows and ensure unique IDs
     const validData = data.filter((item: any) => item.prompts && String(item.prompts).trim() !== '');
@@ -108,7 +120,7 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
     lastFetchTime = now;
     return sortedPrompts;
   } catch (error) {
-    console.error('Error fetching gallery prompts details:', error);
+    console.error('Error fetching gallery prompts details (catch block):', error);
     return cachedPrompts || [];
   }
 }

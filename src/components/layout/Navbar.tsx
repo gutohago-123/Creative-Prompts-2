@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, LayoutGrid, User, Crown, Search, LogOut, Languages, Image } from 'lucide-react';
+import { Sparkles, LayoutGrid, User, Crown, LogOut, Languages, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,7 +30,6 @@ export default function Navbar() {
     { name: t('explore'), path: '/', icon: LayoutGrid },
     { name: t('generator'), path: '/generator', icon: Sparkles },
     { name: language === 'ar' ? 'المعرض' : 'Gallery', path: '/prompts', icon: Image },
-    { name: t('pro'), path: '/pro', icon: Crown },
   ];
 
   const handleSignOut = () => {
@@ -65,10 +64,6 @@ export default function Navbar() {
                       <User className="mr-2 h-4 w-4" />
                       <span>{t('profile')}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-xl p-3 cursor-pointer" onClick={() => navigate('/pro')}>
-                      <Crown className="mr-2 h-4 w-4 text-amber-500" />
-                      <span>{profile?.plan === 'pro' ? 'Pro Member' : t('upgrade')}</span>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="rounded-xl p-3 cursor-pointer text-red-500 focus:text-red-500">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -85,9 +80,6 @@ export default function Navbar() {
                 {t('signIn')}
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full h-9 w-9">
-              <Search className="w-4 h-4" />
-            </Button>
             <Button variant="ghost" size="icon" onClick={toggleLanguage} className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full h-9 w-9">
               <Languages className="w-4 h-4" />
             </Button>

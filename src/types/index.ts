@@ -22,6 +22,12 @@ export interface UserProfile {
   credits: number;
   favorites: string[]; // Array of prompt IDs
   dailyGenerations: number;
+  totalGenerations?: number;
+  generationHistory?: {
+    prompt: string;
+    date: string;
+    id: string;
+  }[];
   lastGenerationDate: string; // ISO string
   isLifetime?: boolean;
 }

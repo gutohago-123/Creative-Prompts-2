@@ -11,6 +11,8 @@ import GeneratorPage from '@/pages/GeneratorPage';
 import ProfilePage from '@/pages/ProfilePage';
 import FavoritesPage from '@/pages/FavoritesPage';
 import HelpCenterPage from '@/pages/HelpCenterPage';
+import GuidesPage from '@/pages/GuidesPage';
+import GuideDetailsPage from '@/pages/GuideDetailsPage';
 import TermsPage from '@/pages/TermsPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import Navbar from '@/components/layout/Navbar';
@@ -38,6 +40,8 @@ export default function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/help" element={<HelpCenterPage />} />
+                <Route path="/guides" element={<GuidesPage />} />
+                <Route path="/guides/:id" element={<GuideDetailsPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
               </Routes>

@@ -15,8 +15,8 @@ export async function fetchPrompts(): Promise<Prompt[]> {
     console.log('Fetching prompts from:', SHEETS_URL);
     const response = await fetch(SHEETS_URL);
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('HTTP error fetching prompts:', response.status, errorData);
+      const errorText = await response.text();
+      console.error('DEBUG: HTTP error fetching prompts:', response.status, errorText);
       return [];
     }
     const data = await response.json();

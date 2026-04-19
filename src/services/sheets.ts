@@ -2,7 +2,7 @@ import { GalleryPrompt, Prompt } from '../types';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { doc, updateDoc, increment, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 
-// Use the server-side proxy to avoid CORS issues
+// Use the server-side proxy to avoid the CORS issues
 const SHEETS_URL = window.location.origin + '/api/sheets'; 
 
 // Global cache to speed up detail page and repeated visits

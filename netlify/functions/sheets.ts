@@ -1,18 +1,28 @@
 import { Handler } from '@netlify/functions';
 
 export const handler: Handler = async (event) => {
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+      body: '',
+    };
+  }
+
   try {
     const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzdog1J5djq52THUd9pt_YBK34iP3hgcLPULnv6zwIwdtI5w10AWfOngzirt-nGtoRfnw/exec';
     
     const response = await fetch(SHEETS_URL, {
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'Mozilla/5.0'
-      }
+      redirect: 'follow'
     });
 
     if (!response.ok) {
-      return { statusCode: response.status, body: JSON.stringify({ error: 'Failed to fetch' }) };
+      return { statusCode: response.status, body: JSON.stringify({ error: 'Failed to fetch from GScript' }) };
     }
 
     const data = await response.json();
@@ -26,6 +36,6 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (error) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Internal server error' }) };
+    return { statusCode: 500, body: JSON.stringify({ error: 'Internal server error in Netlify function' }) };
   }
 };

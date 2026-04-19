@@ -79,12 +79,22 @@ testConnection();
 
 export async function signInWithGoogle() {
   try {
+    console.log('Attempting Google sign-in...');
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
+    console.log('Google sign-in successful:', user.uid);
     await ensureUserExists(user);
     return user;
-  } catch (error) {
-    console.error('Error signing in with Google:', error);
+  } catch (error: any) {
+    console.error('CRITICAL: Firebase Auth Error Details:');
+    console.error('Code:', error.code);
+    console.error('Message:', error.message);
+    if (error.code === 'auth/unauthorized-domain') {
+       console.error('FIX: You MUST add "creativeprompts.netlify.app" to Authorized Domains in Firebase Console -> Authentication -> Settings.');
+    }
+    if (error.code === 'auth/popup-blocked') {
+       console.error('FIX: Your browser blocked the pop-up window.');
+    }
     throw error;
   }
 }

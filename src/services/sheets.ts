@@ -64,7 +64,7 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
       return cachedPrompts;
     }
 
-    console.log('Fetching gallery prompts from:', SHEETS_URL);
+    console.log('DEBUG: Attempting to fetch from:', SHEETS_URL);
     const response = await fetch(SHEETS_URL);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

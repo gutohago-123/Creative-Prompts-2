@@ -75,7 +75,7 @@ async function startServer() {
     }
 
     try {
-      const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzdog1J5djq52THUd9pt_YBK34iP3hgcLPULnv6zwIwdtI5w10AWfOngzirt-nGtoRfnw/exec';
+      const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1YZnYFT9PxDePk-QdzprZhxObceMEGg54cDQ1AYfSQ74/gviz/tq?tqx=out:json';
       console.log('Fetching from Google Sheets URL:', SHEETS_URL);
       
       let response;
@@ -118,8 +118,11 @@ async function startServer() {
         return res.status(response.status).json({ error: `Failed to fetch from Google Sheets: ${response.status}` });
       }
 
-      const data = await response.json();
-      console.log('Successfully fetched data from Google Sheets');
+      const rawText = await response.text();
+      // Strip Gviz prefix if it exists to get clean JSON
+      const jsonText = rawText.replace(/^[^{]*\{/, '{').replace(/\}[^}]*$/, '}');
+      const data = JSON.parse(jsonText);
+      console.log('Successfully fetched and parsed data from Google Sheets');
       
       // Update cache
       sheetsCache = data;

@@ -72,16 +72,14 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
       return cachedPrompts || [];
     }
     const data = await response.json();
-    console.log('fetchGalleryPrompts: Raw data received successfully:', data ? 'Yes' : 'No');
+    console.log('DEBUG: Data received from Sheets:', data);
     
-    if (!Array.isArray(data)) {
-      console.error('Expected array from gallery sheets API, got:', typeof data, data);
-      return cachedPrompts || [];
+    let validData = Array.isArray(data) ? data.filter((item: any) => item.prompts && String(item.prompts).trim() !== '') : [];
+    
+    if (validData.length === 0) {
+       console.log('DEBUG: Using fallback data');
+       validData = [{ id: 'mock', prompts: 'برومبت تجريبي قادم من التطبيق', images: '', set: 'تجربة', type: 'تجربة' }];
     }
-    
-    // Filter out empty rows and ensure unique IDs
-    const validData = data.filter((item: any) => item.prompts && String(item.prompts).trim() !== '');
-    console.log('fetchGalleryPrompts: Valid rows:', validData.length);
     
     // Fetch ALL view stats in one go to avoid N parallel requests
     const statsMap: Record<string, number> = {};

@@ -82,6 +82,11 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
     const data = JSON.parse(textResponse);
     console.log('DEBUG: Data received and parsed:', data);
     
+    // Debug: Log keys to see if column names match
+    if (Array.isArray(data) && data.length > 0) {
+        console.log('DEBUG: Keys found:', Object.keys(data[0]));
+    }
+    
     // Fix: Properly define validData from the parsed data
     const validData = Array.isArray(data) ? data : [];
     

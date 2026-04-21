@@ -82,13 +82,16 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
     const data = JSON.parse(textResponse);
     console.log('DEBUG: Data received and parsed:', data);
     
-    // Debug: Log keys to see if column names match
-    if (Array.isArray(data) && data.length > 0) {
-        console.log('DEBUG: Keys found:', Object.keys(data[0]));
-    }
-    
     // Fix: Properly define validData from the parsed data
     const validData = Array.isArray(data) ? data : [];
+    
+    // Debug UI: Set a temporary message if data exists but keys don't match
+    if (validData.length > 0) {
+        const keys = Object.keys(validData[0]);
+        console.log('DEBUG: Keys found:', keys);
+        // Force an error message on screen with the keys to inform the user
+        throw new Error(`DEBUG: Found these columns: ${keys.join(', ')}. Please check if your code expects different column names.`);
+    }
     
     // Fetch ALL view stats in one go to avoid N parallel requests
     const statsMap: Record<string, number> = {};

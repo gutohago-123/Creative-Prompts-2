@@ -101,7 +101,7 @@ export default function PromptGrid() {
 
       {!loading && prompts.length === 0 && (
         <div className="text-center py-24">
-          <p className="text-zinc-400 text-lg italic">{t('noPromptsFound')}</p>
+          <p className="text-red-500 text-lg italic font-bold">DEBUG: NO PROMPTS FOUND - FETCH FAILED OR DATA EMPTY</p>
         </div>
       )}
     </section>

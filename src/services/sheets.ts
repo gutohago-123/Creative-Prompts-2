@@ -66,20 +66,24 @@ export async function fetchGalleryPrompts(force = false): Promise<GalleryPrompt[
 
     console.log('DEBUG: Attempting to fetch from:', SHEETS_URL);
     const response = await fetch(SHEETS_URL);
+    
+    // Log the exact status code
+    console.log('DEBUG: Received HTTP Status:', response.status);
+    
+    const textResponse = await response.text();
+    console.log('DEBUG: Raw Response Text:', textResponse);
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('HTTP error fetching gallery prompts:', response.status, errorData);
-      return cachedPrompts || [];
+        console.error('HTTP error fetching gallery prompts:', response.status);
+        return [];
     }
-    const data = await response.json();
-    console.log('DEBUG: Data received from Sheets:', data);
     
-    let validData = Array.isArray(data) ? data.filter((item: any) => item.prompts && String(item.prompts).trim() !== '') : [];
+    // Parse the text we already read
+    const data = JSON.parse(textResponse);
+    console.log('DEBUG: Data received and parsed:', data);
     
-    if (validData.length === 0) {
-       console.log('DEBUG: Using fallback data');
-       validData = [{ id: 'mock', prompts: 'برومبت تجريبي قادم من التطبيق', images: '', set: 'تجربة', type: 'تجربة' }];
-    }
+    // Fix: Properly define validData from the parsed data
+    const validData = Array.isArray(data) ? data : [];
     
     // Fetch ALL view stats in one go to avoid N parallel requests
     const statsMap: Record<string, number> = {};
